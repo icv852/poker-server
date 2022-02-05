@@ -16,22 +16,6 @@ const PORT = process.env.PORT || 5000
 const setupForNewGame = require("./logics/setupForNewGame");
 const updateNumberOfHands = require("./logics/updateNumberOfHands");
 
-
-// const io = new Server(8080, {
-
-
-//     // FOR DEV
-//     // cors: {
-//     //     origin: [
-//     //         'http://localhost:3000', 
-//     //         'http://localhost:3001', 
-//     //         'http://localhost:3002',
-//     //         'http://localhost:3003',
-//     //         'http://localhost:3004',
-//     //     ]
-//     // }
-// });
-
 //create empty rooms
 let rooms = [[]]
 
@@ -128,7 +112,9 @@ io.on("connection", (socket) => {
 
         //let the next round player act
         currentRoundPlayer[room] = currentRoundPlayer[room] === 3 ? 0 : currentRoundPlayer[room] + 1
-        io.to((rooms[room][currentRoundPlayer[room]]).socketId).emit('currentRound', false)               
+        io.to((rooms[room][currentRoundPlayer[room]]).socketId).emit('currentRound', false)       
+        //inform all clients who the current player is
+        io.in(room).emit('whoIsCurrentRoundPlayer', currentRoundPlayer[room])        
 
         //FOR DEV
         console.log('currentRoundPlayer', currentRoundPlayer)        
@@ -156,7 +142,9 @@ io.on("connection", (socket) => {
         }
         
         //let the next round play act and pass the isPassedByAllOthers boolean to front end
-        io.to(rooms[room][currentRoundPlayer[room]].socketId).emit('currentRound', isPassedByAllOthers)         
+        io.to(rooms[room][currentRoundPlayer[room]].socketId).emit('currentRound', isPassedByAllOthers)  
+        //inform all clients who the current player is
+        io.in(room).emit('whoIsCurrentRoundPlayer', currentRoundPlayer[room])       
 
         //FOR DEV
         console.log('currentRoundPlayer', currentRoundPlayer)

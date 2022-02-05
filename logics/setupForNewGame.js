@@ -32,4 +32,6 @@ module.exports = function setupForNewGame(decks, room, rooms, io, currentRoundPl
     currentRoundPlayer[room] = findDiamond3Owner(decks[room])
     io.to(rooms[room][currentRoundPlayer[room]].socketId).emit('firstRound')
     io.to(rooms[room][currentRoundPlayer[room]].socketId).emit('currentRound', false)
+    //inform all clients who the current player is
+    io.in(room).emit('whoIsCurrentRoundPlayer', currentRoundPlayer[room])
 }
