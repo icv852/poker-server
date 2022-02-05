@@ -4,7 +4,8 @@ const options = {cors: {
         'http://localhost:3000', 
         'http://localhost:3001', 
         'http://localhost:3002',
-        'http://localhost:3003'
+        'http://localhost:3003',
+        'https://zealous-payne-eadd60.netlify.app'
     ]
 }};
 const io = require("socket.io")(httpServer, options);
