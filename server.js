@@ -52,7 +52,7 @@ io.on("connection", (socket) => {
             })
                                         
             //when < 4 players setWaiting in front end
-            io.in(room).emit('waiting')
+            io.in(room).emit('waiting', 4 - rooms[room].length)
 
             //when the 4th player joins and fills a room
             if(rooms[room].length === 4) {
