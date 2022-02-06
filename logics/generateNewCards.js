@@ -69,18 +69,4 @@ module.exports = function generateNewCards(room) {
   while (reshuffle === true)
 
   return deck
-}        
-    
-    
-
-
-
-
-// // //dealing cards to players individually
-// for(let i = 0; i < rooms[room].length; i++){
-//   let startingHand = decks[room].filter(card => card.owner === rooms[room][i].playerId)
-//   for(let j = 0; j < startingHand.length; j++) {
-//       startingHand[j]['myCardsIndex'] = j
-//   }
-//   io.to(rooms[room][i].socketId).emit('dealingCards', startingHand)
-// }
+}

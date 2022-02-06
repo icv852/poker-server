@@ -77,12 +77,6 @@ io.on("connection", (socket) => {
             io.to(socket.id).emit('full', `Room ${room + 1} is full!`)
             console.log('Room ', room + 1, ' is full')
         }         
-
-        //FOR DEV
-        // console.log('rooms', rooms)
-        // console.log('currentRoundPlayer', currentRoundPlayer)
-        // console.log('currentBiggests', currentBiggests)
-        // console.log('currentBiggestRanks', currentBiggestRanks)
     })       
     
     socket.on('play', cards => {
@@ -114,13 +108,7 @@ io.on("connection", (socket) => {
         currentRoundPlayer[room] = currentRoundPlayer[room] === 3 ? 0 : currentRoundPlayer[room] + 1
         io.to((rooms[room][currentRoundPlayer[room]]).socketId).emit('currentRound', false)       
         //inform all clients who the current player is
-        io.in(room).emit('whoIsCurrentRoundPlayer', currentRoundPlayer[room])        
-
-        //FOR DEV
-        // console.log('rooms', rooms)
-        // console.log('currentRoundPlayer', currentRoundPlayer)
-        // console.log('currentBiggests', currentBiggests)
-        // console.log('currentBiggestRanks', currentBiggestRanks)      
+        io.in(room).emit('whoIsCurrentRoundPlayer', currentRoundPlayer[room])         
     })
 
     socket.on('pass', hands => {
@@ -148,12 +136,6 @@ io.on("connection", (socket) => {
         io.to(rooms[room][currentRoundPlayer[room]].socketId).emit('currentRound', isPassedByAllOthers)  
         //inform all clients who the current player is
         io.in(room).emit('whoIsCurrentRoundPlayer', currentRoundPlayer[room])       
-
-        //FOR DEV
-        // console.log('rooms', rooms)
-        // console.log('currentRoundPlayer', currentRoundPlayer)
-        // console.log('currentBiggests', currentBiggests)
-        // console.log('currentBiggestRanks', currentBiggestRanks)
     })
 
     socket.on('emptyHand', ({socketId, room}) => {
@@ -174,23 +156,11 @@ io.on("connection", (socket) => {
 
         //send waitForWinner events and updated players object to all clients
         io.in(room).emit('waitForWinner', rooms[room])
-
-        //FOR DEV
-        // console.log('rooms', rooms)
-        // console.log('currentRoundPlayer', currentRoundPlayer)
-        // console.log('currentBiggests', currentBiggests)
-        // console.log('currentBiggestRanks', currentBiggestRanks)
     })
 
     socket.on('requireNewGame', room => {
         //setup a new game
         setupForNewGame(decks, room, rooms, io, currentRoundPlayer, currentBiggests, currentBiggestRanks)  
-        
-        //FOR DEV
-        // console.log('rooms', rooms)
-        // console.log('currentRoundPlayer', currentRoundPlayer)
-        // console.log('currentBiggests', currentBiggests)
-        // console.log('currentBiggestRanks', currentBiggestRanks)
     })    
 
     //when client disconnect
@@ -212,21 +182,7 @@ io.on("connection", (socket) => {
                 }
             }
         }
-
-        //FOR DEV
-        // console.log('client disconnected: ', socket.id)
-        // console.log('rooms', rooms)
-        // console.log('currentRoundPlayer', currentRoundPlayer)
-        // console.log('currentBiggests', currentBiggests)
-        // console.log('currentBiggestRanks', currentBiggestRanks)
     })
-
-    //FOR DEV
-    // console.log('new client connected: ', socket.id)
-    // console.log('rooms', rooms)
-    // console.log('currentRoundPlayer', currentRoundPlayer)
-    // console.log('currentBiggests', currentBiggests)
-    // console.log('currentBiggestRanks', currentBiggestRanks)
 });
 
 httpServer.listen(PORT);
