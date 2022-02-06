@@ -1,6 +1,11 @@
 module.exports = function generateNewCards(room) {
-    //create a empty array
-    let deck = []
+  let deck = []   
+  let reshuffle = false  
+
+  do{
+    deck = []    
+    reshuffle = false
+
     for (let i = 0; i < 52; i++) {
       let suit;
       let number;
@@ -46,6 +51,36 @@ module.exports = function generateNewCards(room) {
         deck[i]['owner'] = 3
       }
     }
+
+    //check if anyone's hands contain fewer than 2 cards bigger than '10' and no 'A' or '2', reshuffle if true
+    for (let i = 0; i < 4; i++) {
+      //check for 'A' and '2'
+      let AOr2 = deck.filter(card => card.owner === i && card.number > 13)      
+      if (AOr2.length > 0) continue
+
+      //check for number of cards bigger than '10'
+      let cardsBiggerThan10 = deck.filter(card => card.owner === i && card.number > 10)
+      if (cardsBiggerThan10.length < 3) {
+        reshuffle = true
+      }      
+    }
+  }
+  
+  while (reshuffle === true)
+
+  return deck
+}        
     
-    return deck
-}
+    
+
+
+
+
+// // //dealing cards to players individually
+// for(let i = 0; i < rooms[room].length; i++){
+//   let startingHand = decks[room].filter(card => card.owner === rooms[room][i].playerId)
+//   for(let j = 0; j < startingHand.length; j++) {
+//       startingHand[j]['myCardsIndex'] = j
+//   }
+//   io.to(rooms[room][i].socketId).emit('dealingCards', startingHand)
+// }

@@ -11,7 +11,7 @@ module.exports = function setupForNewGame(decks, room, rooms, io, currentRoundPl
     io.in(room).emit('clearOldStates')
 
     //generate a new deck for the room
-    decks[room] = generateNewCards(room)
+    decks[room] = generateNewCards(room)    
 
     //dealing cards to players individually
     for(let i = 0; i < rooms[room].length; i++){
