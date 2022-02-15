@@ -1,3 +1,30 @@
+// Import the functions you need from the SDKs you need
+const { initializeApp } = require("firebase/app");
+const { getAnalytics } = require("firebase/analytics");
+const { getDatabase, ref, child, get, set } = require("firebase/database");
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCHffMV0BNMIvrz5Rcgnrr1501Luxmo-_4",
+  authDomain: "vicbig2.firebaseapp.com",
+  //use firebase realtime database
+  databaseURL: "https://vicbig2-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  projectId: "vicbig2",
+  storageBucket: "vicbig2.appspot.com",
+  messagingSenderId: "881070068235",
+  appId: "1:881070068235:web:ad533d118f3d7c0c0f2d0e",
+  measurementId: "G-8H3BEJGBZQ"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+// Get a reference to the database service
+const database = getDatabase(app);
+const dbRef = ref(getDatabase());
+
 const httpServer = require("http").createServer();
 const options = {cors: {
     origin: [
@@ -20,6 +47,7 @@ const PORT = process.env.PORT || 5000
 // const { Server } = require("socket.io");
 const setupForNewGame = require("./logics/setupForNewGame");
 const updateNumberOfHands = require("./logics/updateNumberOfHands");
+const getLeaderboardData = require("./logics/getLeaderboardData")
 
 //create empty rooms
 let rooms = [[], [], []]
@@ -34,7 +62,10 @@ let currentRoundPlayer = [[], [], []]
 let currentBiggests = [[], [], []]
 let currentBiggestRanks = [[], [], []]
 
-io.on("connection", (socket) => {
+io.on("connection", async (socket) => {
+    //send leaderboard data to client and show it on login page  
+    const leaderboardData = await getLeaderboardData(dbRef, child, get)    
+    io.to(socket.id).emit('leaderboard', leaderboardData)     
     
     //while client join a room, he joins the handmade room (the above array) and also the socket room
     socket.on('join', ({name, room}) => {           
@@ -164,15 +195,44 @@ io.on("connection", (socket) => {
     })    
 
     //when client disconnect
-    socket.on('disconnect', () => {
-        
-        
+    socket.on('disconnect', async () => {               
         //searching for disconnected client's name and room
         for (let i = 0; i < rooms.length; i++) {
             for (let j = 0; j < rooms[i].length; j++) {
                 if (rooms[i][j].socketId === socket.id) {
                     //force all players in the same room to disconnect with server
                     io.to(i.toString()).emit('otherDisconnect')
+                    //collect room score data for updating leaderboard
+                    let roomScores = []
+                    for (let k = 0; k < rooms[i].length; k++) {
+                        roomScores.push({
+                            name: rooms[i][k].name,
+                            score: rooms[i][k].score
+                        })
+                    }
+                    //FOR DEV
+                    // console.log("roomScores", roomScores)
+
+                    //collect leaderboard data from database
+                    const oldLeaderBoard = await getLeaderboardData(dbRef, child, get)
+                    // console.log("oldLeaderBoard", oldLeaderBoard)
+
+                    //merge the two arrays of roomScores and oldLeaderBoard
+                    const mergedArray = oldLeaderBoard.concat(roomScores)
+                    console.log('mergedArray', mergedArray)
+
+                    //pick the five top scores in mergedArray
+                    mergedArray.sort((a, b) => b.score - a.score)
+                    let updatedArray = []
+                    for (let i = 0; i < 5; i++) {
+                        updatedArray.push(mergedArray[i])
+                    }                                
+
+                    //update leaderboard on database
+                    set(ref(database, `leaderboard`), {
+                        ...updatedArray
+                    });
+                    
                     //clear room data
                     rooms[i] = []
                     decks[i] = []
