@@ -26,20 +26,7 @@ const database = getDatabase(app);
 const dbRef = ref(getDatabase());
 
 const httpServer = require("http").createServer();
-const options = {cors: {
-    origin: [
-        'http://localhost:3000', 
-        'http://localhost:3001', 
-        'http://localhost:3002',
-        'http://localhost:3003',
-        'http://localhost:3004',
-        'http://localhost:3005',
-        'http://localhost:3006',
-        'http://localhost:3007',
-        'http://localhost:3008',
-        'https://zealous-payne-eadd60.netlify.app'
-    ]
-}};
+const options = {cors: { origin: "*" }};
 const io = require("socket.io")(httpServer, options);
 
 const PORT = process.env.PORT || 5000
@@ -47,7 +34,9 @@ const PORT = process.env.PORT || 5000
 // const { Server } = require("socket.io");
 const setupForNewGame = require("./logics/setupForNewGame");
 const updateNumberOfHands = require("./logics/updateNumberOfHands");
-const getLeaderboardData = require("./logics/getLeaderboardData")
+
+// const getLeaderboardData = require("./logics/getLeaderboardData")
+const getLeaderboardData = async () => [] // shim
 
 //create empty rooms
 let rooms = [[], [], []]
@@ -66,9 +55,13 @@ io.on("connection", async (socket) => {
     //send leaderboard data to client and show it on login page  
     const leaderboardData = await getLeaderboardData(dbRef, child, get)    
     io.to(socket.id).emit('leaderboard', leaderboardData)     
+
+    console.log(socket.id, "CONNECTED")
     
     //while client join a room, he joins the handmade room (the above array) and also the socket room
     socket.on('join', ({name, room}) => {           
+        console.log(socket.id, "MESSAGE", "join", {name, room})
+
         //push the new player to the correct room array if the room is not full:
         if (rooms[room].length < 4) {
             //loop over the room array to check if client is already in the room
@@ -111,6 +104,8 @@ io.on("connection", async (socket) => {
     })       
     
     socket.on('play', cards => {
+        console.log(socket.id, "MESSAGE", "play", cards)
+
         const room = cards.rank ? cards.cards[0].room : cards[0].room
 
         //update the currentBiggests and currentBiggestRanks array on server
@@ -143,6 +138,8 @@ io.on("connection", async (socket) => {
     })
 
     socket.on('pass', hands => {
+        console.log(socket.id, "MESSAGE", "pass", hands)
+
         const room = hands[0].room
 
         //define the next round player id
@@ -170,6 +167,8 @@ io.on("connection", async (socket) => {
     })
 
     socket.on('emptyHand', ({socketId, room}) => {
+        console.log(socket.id, "MESSAGE", "emptyHand", {socketId, room})
+
         //set isWinner state on front end of winner
         io.to(socketId).emit('win')        
 
@@ -190,12 +189,15 @@ io.on("connection", async (socket) => {
     })
 
     socket.on('requireNewGame', room => {
+        console.log(socket.id, "MESSAGE", "requireNewGame")
         //setup a new game
         setupForNewGame(decks, room, rooms, io, currentRoundPlayer, currentBiggests, currentBiggestRanks)  
     })    
 
     //when client disconnect
     socket.on('disconnect', async () => {               
+        console.log(socket.id, "MESSAGE", "disconnect")
+
         //searching for disconnected client's name and room
         for (let i = 0; i < rooms.length; i++) {
             for (let j = 0; j < rooms[i].length; j++) {
@@ -229,9 +231,11 @@ io.on("connection", async (socket) => {
                     }                                
 
                     //update leaderboard on database
+                    /*
                     set(ref(database, `leaderboard`), {
                         ...updatedArray
                     });
+                    */
                     
                     //clear room data
                     rooms[i] = []
@@ -246,3 +250,5 @@ io.on("connection", async (socket) => {
 });
 
 httpServer.listen(PORT);
+
+console.log("poker server is listening on port", PORT)
